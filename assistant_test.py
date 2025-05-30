@@ -4,15 +4,15 @@ import requests
 from dotenv import load_dotenv
 from pathlib import Path
 
-# ✅ Load .env file and API key
+# Load .env file and API key
 env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path)
 api_key = os.getenv("OPENAI_API_KEY")
-print("🔑 API Key Loaded:", api_key)
+print(" API Key Loaded:", api_key)
 
 client = openai.OpenAI(api_key=api_key)
 
-# ✅ Define backend-executable GPT function
+# Define backend-executable GPT function
 functions = [
     {
         "name": "plan_trip",
@@ -32,16 +32,16 @@ functions = [
     }
 ]
 
-# ✅ Function that calls your FastAPI backend
+#  Function that calls your FastAPI backend
 def call_backend_function(name, arguments):
     if name == "plan_trip":
-        print("📡 Calling backend with:", arguments)
+        print(" Calling backend with:", arguments)
         response = requests.post("http://127.0.0.1:8000/plan_trip", json=arguments)
         return response.json()
 
-# ✅ Main interaction
+#  Main interaction
 if __name__ == "__main__":
-    print("🚀 Starting assistant test...")
+    print(" Starting assistant test...")
 
     messages = [
         {
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         }
     ]
 
-    # ✅ Make GPT call
+    #  Make GPT call
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=messages,
@@ -60,19 +60,19 @@ if __name__ == "__main__":
 
     choice = response.choices[0].message
 
-    # ✅ Handle function call if GPT triggers it
+    #  Handle function call if GPT triggers it
     if choice.tool_calls:
         tool_call = choice.tool_calls[0]
         name = tool_call.function.name
         args = eval(tool_call.function.arguments)  # safe here, coming from GPT
 
-        print(f"🤖 GPT wants to call `{name}`")
-        print("📦 With arguments:", args)
+        print(f" GPT wants to call `{name}`")
+        print(" With arguments:", args)
 
         result = call_backend_function(name, args)
-        print("\n✅ Backend result:")
+        print("\n Backend result:")
         print(result)
 
     else:
-        print("\n💬 GPT replied with a message:")
+        print("\n GPT replied with a message:")
         print(choice.content)
