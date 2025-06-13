@@ -58,7 +58,7 @@ if message.tool_calls:
     # Step 3: Call local FastAPI backend
     try:
         backend_response = requests.post(
-            "http://127.0.0.1:8000/plan_trip",
+            url="https://qripsy-backend.onrender.com/plan_trip",
             json=function_args,
             timeout=10
         )
