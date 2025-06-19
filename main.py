@@ -1,13 +1,13 @@
 # This file defines a FastAPI backend that: Accepts a POST request at /plan_trip. Expects a JSON body with destination, days, and interests. Responds with a generated itinerary using basic formatting
 
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException
 # FastAPI: The main web framework we are using to build the backend API
-# request: (not used here yet, but imported) useful for accessing the raw request if needed
 from pydantic import BaseModel
 # Used to define and validate the shape of incoming JSON data.
 from typing import List
 # Used to define the type of the interests field — a list of strings.
+from pydantic import BaseModel
 
 app = FastAPI()
 # Creates an instance of the FastAPI app => this is the core of our backend that routes requests
@@ -39,3 +39,23 @@ async def plan_trip(req: TripRequest):
         "itinerary": itinerary
     }
     # Responds with a JSON object containing: The destination, the number of days, and the generated itinerary dictionary
+
+class ESIMRequest(BaseModel):
+    country: str
+    device: str
+
+@app.post("/get_esim_options")
+async def get_esim_options(req: ESIMRequest):
+    if not req.country or not req.device:
+        raise HTTPException(status_code=400, detail="Country and device are required.")
+
+    esim_data = {
+        "country": req.country,
+        "device": req.device,
+        "plans": [
+            {"name": "Basic Plan", "data": "1GB", "price": "$5"},
+            {"name": "Standard Plan", "data": "3GB", "price": "$10"},
+            {"name": "Unlimited Plan", "data": "∞", "price": "$20"}
+        ]
+    }
+    return esim_data

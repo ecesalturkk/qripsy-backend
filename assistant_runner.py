@@ -23,7 +23,7 @@ thread = openai.beta.threads.create()
 openai.beta.threads.messages.create(
     thread_id=thread.id,
     role="user",
-    content="Plan a 3-day trip to Rome including food and culture."
+    content="Show me esim options for France on iPhone."
 )
 
 # Run the assistant on this thread, at this point the assistant will read the message, decide if it wants to call a function (tool) or reply normally.
@@ -53,7 +53,11 @@ while True:
             json=args
         )
 
-
+    if name == "get_esim_options":
+        response = requests.post(
+            url="https://qripsy-backend.onrender.com/get_esim_options",
+            json=args
+        )
         # We take the response from your backend, submit it back to OpenAI, the Assistant will continue the conversation
         tool_output = response.json()
         openai.beta.threads.runs.submit_tool_outputs(
@@ -66,6 +70,8 @@ while True:
                 }
             ]
         )
+
+
     # Waits 2 seconds and check again if not ready yet
     else:
         time.sleep(2)
