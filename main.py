@@ -74,3 +74,28 @@ async def get_safety_info(req: SafetyRequest):
         },
         "tips": f"Be aware of local customs and keep emergency contacts saved while traveling in {req.country}."
     }
+class TranslationRequest(BaseModel):
+    phrase: str
+    target_language: str
+
+@app.post("/get_translation")
+async def get_translation(req: TranslationRequest):
+    return {
+        "original": req.phrase,
+        "language": req.target_language,
+        "translation": f"Translated '{req.phrase}' to {req.target_language}."
+    }
+
+class LocalEventsRequest(BaseModel):
+    city: str
+
+@app.post("/get_local_events")
+async def get_local_events(req: LocalEventsRequest):
+    return {
+        "city": req.city,
+        "events": [
+            f"Food Festival in {req.city}",
+            f"Live music concert in central {req.city}",
+            f"Open-air art market this weekend in {req.city}"
+        ]
+    }
