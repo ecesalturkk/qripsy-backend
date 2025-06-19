@@ -40,26 +40,30 @@ while True:
     # This loop checks every few seconds if the Assistant is done or needs an action.
     if run_status.status == "completed":
         break
+    
     elif run_status.status == "requires_action":
-        # If GPT wants to call a function, we handle the function call here (we extract tool_call and the arguments)
         tool_call = run_status.required_action.submit_tool_outputs.tool_calls[0]
         name = tool_call.function.name
-        args = eval(tool_call.function.arguments)  # Caution: Use json.loads() for safety
+        args = eval(tool_call.function.arguments)
+
         print(f" Assistant wants to call {name} with {args}")
 
-        # Send request to your backend (send the arguments to your backend)
-        response = requests.post(
-            url="https://qripsy-backend.onrender.com/plan_trip",
-            json=args
-        )
+        # Handle different tool names dynamically:
+        if name == "plan_trip":
+            response = requests.post(
+                url="https://qripsy-backend.onrender.com/plan_trip",
+                json=args
+            )
+        elif name == "get_esim_options":
+            response = requests.post(
+                url="https://qripsy-backend.onrender.com/get_esim_options",
+                json=args
+            )
+        else:
+            raise ValueError(f"Unknown tool name: {name}")
 
-    if name == "get_esim_options":
-        response = requests.post(
-            url="https://qripsy-backend.onrender.com/get_esim_options",
-            json=args
-        )
-        # We take the response from your backend, submit it back to OpenAI, the Assistant will continue the conversation
         tool_output = response.json()
+
         openai.beta.threads.runs.submit_tool_outputs(
             thread_id=thread.id,
             run_id=run.id,

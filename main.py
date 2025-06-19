@@ -59,3 +59,18 @@ async def get_esim_options(req: ESIMRequest):
         ]
     }
     return esim_data
+
+class SafetyRequest(BaseModel):
+    country: str
+
+@app.post("/get_safety_info")
+async def get_safety_info(req: SafetyRequest):
+    return {
+        "country": req.country,
+        "emergency_numbers": {
+            "police": "112",
+            "ambulance": "113",
+            "fire": "114"
+        },
+        "tips": f"Be aware of local customs and keep emergency contacts saved while traveling in {req.country}."
+    }
