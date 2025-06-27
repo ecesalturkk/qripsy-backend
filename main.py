@@ -99,3 +99,56 @@ async def get_local_events(req: LocalEventsRequest):
             f"Open-air art market this weekend in {req.city}"
         ]
     }
+
+
+class ConversationRequest(BaseModel):
+    message: str
+
+# about competitors
+BLOCKED_KEYWORDS = [
+    "competitor", "openai", "chatgpt", "claude", "gemini", "bard", "pi",
+    "meta ai", "anthropic", "perplexity", "mistral", "llama", "groq", 
+    "comparison", "vs", "compare", "better than", "alternative", "benchmark"
+]
+
+# language
+PROFANITY_WORDS = [
+    "fuck", "shit", "bitch", "asshole", "bastard", "damn", "crap", "dick", "piss",
+    "fucker", "fucking", "retard", "douche", "slut", "whore"
+]
+
+# sexual stuff
+SEXUAL_WORDS = [
+    "sex", "porn", "nude", "naked", "boobs", "breasts", "vagina", "penis", "dildo",
+    "cum", "orgasm", "anal", "blowjob", "masturbate"
+]
+
+@app.post("/conversation")
+async def handle_conversation(req: ConversationRequest):
+    user_message = req.message.lower()
+
+    if any(word in user_message for word in BLOCKED_KEYWORDS):
+        return {
+            "allowed": False,
+            "reason": "competitor_policy",
+            "response": "I'm unable to answer questions about competitors. Let me know how I can help with your travel plans!"
+        }
+
+    if any(word in user_message for word in PROFANITY_WORDS):
+        return {
+            "allowed": False,
+            "reason": "profanity_detected",
+            "response": "Please avoid using offensive language so I can assist you better."
+        }
+
+    if any(word in user_message for word in SEXUAL_WORDS):
+        return {
+            "allowed": False,
+            "reason": "inappropriate_content",
+            "response": "I'm here to help with travel-related queries. Please keep the conversation respectful."
+        }
+
+    return {
+        "allowed": True,
+        "response": "Your message is accepted and being processed."
+    }

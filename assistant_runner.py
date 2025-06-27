@@ -23,7 +23,7 @@ thread = openai.beta.threads.create()
 openai.beta.threads.messages.create(
     thread_id=thread.id,
     role="user",
-    content="Show me esim options for France on iPhone."
+    content="“Can you give me safety information for Spain?”"
 )
 
 # Run the assistant on this thread, at this point the assistant will read the message, decide if it wants to call a function (tool) or reply normally.
@@ -59,6 +59,28 @@ while True:
                 url="https://qripsy-backend.onrender.com/get_esim_options",
                 json=args
             )
+        elif name == "get_safety_info":
+            response = requests.post(
+                url="https://qripsy-backend.onrender.com/get_safety_info",
+                json=args
+            )
+        elif name == "get_translation":
+            response = requests.post(
+                url="https://qripsy-backend.onrender.com/get_translation",
+                json=args
+            )
+        elif name == "get_local_events":
+            response = requests.post(
+                url="https://qripsy-backend.onrender.com/get_local_events",
+                json=args
+            )
+        elif name == "conversation":
+            response = requests.post(
+                url="https://qripsy-backend.onrender.com/get_local_events",
+                json=args
+            )
+
+
         else:
             raise ValueError(f"Unknown tool name: {name}")
 
