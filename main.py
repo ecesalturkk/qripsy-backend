@@ -100,55 +100,36 @@ async def get_local_events(req: LocalEventsRequest):
         ]
     }
 
+import re
+
+app = FastAPI()
 
 class ConversationRequest(BaseModel):
     message: str
 
-# about competitors
-BLOCKED_KEYWORDS = [
-    "competitor", "openai", "chatgpt", "claude", "gemini", "bard", "pi",
-    "meta ai", "anthropic", "perplexity", "mistral", "llama", "groq", 
-    "comparison", "vs", "compare", "better than", "alternative", "benchmark"
-]
-
-# language
-PROFANITY_WORDS = [
-    "fuck", "shit", "bitch", "asshole", "bastard", "damn", "crap", "dick", "piss",
-    "fucker", "fucking", "retard", "douche", "slut", "whore"
-]
-
-# sexual stuff
-SEXUAL_WORDS = [
-    "sex", "porn", "nude", "naked", "boobs", "breasts", "vagina", "penis", "dildo",
-    "cum", "orgasm", "anal", "blowjob", "masturbate"
+COMPETITOR_KEYWORDS = [
+    "Airalo", "Airhub", "BetterRoaming", "BNESIM", "ByteSim", "DENT", "Digital Republic",
+    "easySim", "EscapeSIM", "eSIM.sm", "eSIM2Fly", "eSIM4Travel", "Esimatic", "esim-man",
+    "eSIMple", "eSIMplus", "eSIMX", "ETravelSim", "Ezsim", "Flexiroam", "GIGAGO", "GigSky",
+    "GLOBAL YO", "GlobaleSIM", "GoMoWorld", "iFREE Mogo", "Instabridge eSIM", "Jetpac",
+    "Keepgo", "KnowRoaming", "Kolet", "Manet Travel", "Maya Mobile", "MicroEsim", "MobiMatter",
+    "Monty eSIM", "MTX Connect", "Nomad", "NorthSIM", "RapideSIM", "RedteaGO", "Roamify",
+    "Saily", "SimOptions", "Soracom Mobile", "Stork Mobile", "Taro Mobile", "Textr eSIM",
+    "TravelKon", "trifa", "Truphone", "Ubigi", "UPeSIM", "Webbing", "WiFi Map", "Yesim",
+    "Yoho Mobile", "Roamless", "Honest"
 ]
 
 @app.post("/conversation")
-async def handle_conversation(req: ConversationRequest):
-    user_message = req.message.lower()
-
-    if any(word in user_message for word in BLOCKED_KEYWORDS):
-        return {
-            "allowed": False,
-            "reason": "competitor_policy",
-            "response": "I'm unable to answer questions about competitors. Let me know how I can help with your travel plans!"
-        }
-
-    if any(word in user_message for word in PROFANITY_WORDS):
-        return {
-            "allowed": False,
-            "reason": "profanity_detected",
-            "response": "Please avoid using offensive language so I can assist you better."
-        }
-
-    if any(word in user_message for word in SEXUAL_WORDS):
-        return {
-            "allowed": False,
-            "reason": "inappropriate_content",
-            "response": "I'm here to help with travel-related queries. Please keep the conversation respectful."
-        }
+async def conversation(req: ConversationRequest):
+    for keyword in COMPETITOR_KEYWORDS:
+        if re.search(rf"\b{re.escape(keyword)}\b", req.message, re.IGNORECASE):
+            return {
+                "allowed": False,
+                "reason": "competitor_detected",
+                "response": "Sorry, I can't help with questions about competitors. Let me know how I can assist with your travel plans instead!"
+            }
 
     return {
         "allowed": True,
-        "response": "Your message is accepted and being processed."
+        "reply": "Your message is allowed. How can I help you further?"
     }
