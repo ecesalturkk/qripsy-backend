@@ -49,19 +49,73 @@ async def get_esim_options(req: ESIMRequest):
     if not req.country or not req.device:
         raise HTTPException(status_code=400, detail="Country and device are required.")
 
-    esim_data = {
+    # For now, mapping simplified to country categories, can later add country-specific logic
+    if req.country.lower() in ["usa", "canada", "mexico"]:
+        region = "North America"
+    elif req.country.lower() in ["france", "germany", "italy", "spain", "uk"]:
+        region = "Europe"
+    else:
+        region = "Global"
+
+    # Real packages from your PDF
+    plans = [
+        {
+            "name": "Qrispy Go",
+            "type": "Pay-as-you-go",
+            "data": "Flexible (user top-up)",
+            "price": "Based on usage",
+            "coverage": "Global",
+            "duration": "No expiry",
+            "activation": "Whenever user activates",
+            "segment": "Frequent travellers, flexibility, value"
+        },
+        {
+            "name": "Qrispy Data Plan",
+            "type": "Package",
+            "data": "1-3-5-10-20GB",
+            "price": "Varies by region",
+            "coverage": "Country/Region",
+            "duration": "Day, Week, 2 Weeks, Month",
+            "activation": "When user arrives",
+            "segment": "One-off, cost-conscious"
+        },
+        {
+            "name": "Qrispy Unlimited Plan",
+            "type": "Unlimited Package",
+            "data": "1/2/3 GB per day, then throttled",
+            "price": "Subscription or flat rate",
+            "coverage": region,
+            "duration": "Daily/Weekly/Monthly",
+            "activation": "When user arrives",
+            "segment": "Users who want no limits"
+        },
+        {
+            "name": "Qrispy Multi Plan",
+            "type": "Pack+",
+            "data": "30-40-60GB (shared)",
+            "price": "Varies",
+            "coverage": region,
+            "duration": "Day, Week, 2 Weeks, Month",
+            "activation": "When user arrives",
+            "segment": "Families, Friends, Nomads, Teams"
+        },
+        {
+            "name": "Qrispy Global Membership",
+            "type": "Subscription",
+            "data": "Unlimited or fixed",
+            "price": "Monthly/Yearly",
+            "coverage": region,
+            "duration": "Subscription-based",
+            "activation": "When user arrives",
+            "segment": "Expats, Students, Digital Nomads"
+        }
+    ]
+
+    return {
         "country": req.country,
         "device": req.device,
-        "plans": [
-            {"name": "Basic Plan", "data": "1GB", "price": "$5"},
-            {"name": "Standard Plan", "data": "3GB", "price": "$10"},
-            {"name": "Unlimited Plan", "data": "∞", "price": "$20"}
-        ]
+        "plans": plans
     }
-    return esim_data
-
-class SafetyRequest(BaseModel):
-    country: str
 
 @app.post("/get_safety_info")
 async def get_safety_info(req: SafetyRequest):
