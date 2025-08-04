@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from typing import List
 # Used to define the type of the interests field — a list of strings.
 from pydantic import BaseModel
+from models import SafetyRequest
+
 
 app = FastAPI()
 # Creates an instance of the FastAPI app => this is the core of our backend that routes requests
