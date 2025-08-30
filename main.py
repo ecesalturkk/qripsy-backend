@@ -1,29 +1,32 @@
-# main.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, constr
 from typing import List, Dict, Literal, Optional
 import string
 
-app = FastAPI(title="Qrispy TravelBuddy API", version="0.1.1")
+app = FastAPI(title="Qrispy TravelBuddy API", version="0.1.2")
 
-# CORS (prod'da domainlerini ekle)
+# --- CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # TODO: prod'da sıkılaştır
+    allow_origins=["*"],   # TODO: prod'da domainini ekle
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Types 
+# --- Types ---
 CountryStr = constr(strip_whitespace=True, min_length=2, max_length=64)
 DeviceStr  = constr(strip_whitespace=True, min_length=2, max_length=64)
 LangStr    = constr(strip_whitespace=True, min_length=2, max_length=32)
 CityStr    = constr(strip_whitespace=True, min_length=2, max_length=64)
 MessageStr = constr(strip_whitespace=True, min_length=1, max_length=2000)
 
-# Models (request/response) 
+# --- Base response (success=true default) ---
+class BaseOK(BaseModel):
+    success: bool = True
+
+# --- Request/Response Models ---
 class TripRequest(BaseModel):
     destination: CountryStr
     days: int = Field(ge=1, le=30)
@@ -34,7 +37,7 @@ class DayPlan(BaseModel):
     afternoon: str
     evening: str
 
-class TripResponse(BaseModel):
+class TripResponse(BaseOK):
     destination: str
     days: int
     itinerary: Dict[str, DayPlan]
@@ -53,7 +56,7 @@ class ESIMPlan(BaseModel):
     activation: str
     segment: str
 
-class ESIMResponse(BaseModel):
+class ESIMResponse(BaseOK):
     country: str
     device: str
     region: str
@@ -62,7 +65,7 @@ class ESIMResponse(BaseModel):
 class SafetyRequest(BaseModel):
     country: CountryStr
 
-class SafetyResponse(BaseModel):
+class SafetyResponse(BaseOK):
     country: str
     emergency_numbers: Dict[str, str]
     tips: str
@@ -72,7 +75,7 @@ class TranslationRequest(BaseModel):
     phrase: constr(strip_whitespace=True, min_length=1)
     target_language: LangStr
 
-class TranslationResponse(BaseModel):
+class TranslationResponse(BaseOK):
     original: str
     language: str
     translation: str
@@ -80,21 +83,20 @@ class TranslationResponse(BaseModel):
 class LocalEventsRequest(BaseModel):
     city: CityStr
 
-class LocalEventsResponse(BaseModel):
+class LocalEventsResponse(BaseOK):
     city: str
     events: List[str]
 
 class ConversationRequest(BaseModel):
     message: MessageStr
 
-class ConversationResponse(BaseModel):
+class ConversationResponse(BaseOK):
     allowed: bool
     reason: Optional[str] = None
     response: Optional[str] = None
     reply: Optional[str] = None
-    # success kaldırıldı
 
-# Utils
+# --- Utils ---
 _COMPETITOR_KEYWORDS = {
     "airalo","airhub","betterroaming","bnesim","bytesim","dent","digital republic",
     "easysim","escapesim","esim.sm","esim2fly","esim4travel","esimatic","esim-man",
@@ -123,7 +125,7 @@ def infer_region(country: str) -> str:
         return "Europe"
     return "Global"
 
-# Routes 
+# --- Routes ---
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -145,7 +147,7 @@ async def plan_trip(req: TripRequest):
 @app.post("/get_esim_options", response_model=ESIMResponse)
 async def get_esim_options(req: ESIMRequest):
     if not req.country or not req.device:
-        raise HTTPException(status_code=400, detail="Country and device are required.")
+        return ESIMResponse(success=False, country=req.country, device=req.device, region="Unknown", plans=[])
     region = infer_region(req.country)
     plans = [
         ESIMPlan(name="Qrispy Go", type="Pay-as-you-go", data="Flexible (user top-up)",
@@ -199,6 +201,7 @@ async def get_local_events(req: LocalEventsRequest):
 async def conversation(req: ConversationRequest):
     if contains_competitor(req.message):
         return ConversationResponse(
+            success=False,
             allowed=False,
             reason="competitor_detected",
             response="Sorry, I can't help with questions about competitors. Let me know how I can assist with your travel plans instead!",
