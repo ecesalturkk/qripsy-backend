@@ -4,6 +4,10 @@ from pydantic import BaseModel, Field, constr
 from typing import List, Dict, Literal, Optional
 import string
 
+from routes_chat import router as chat_router
+app.include_router(chat_router)
+
+
 app = FastAPI(title="Qrispy TravelBuddy API", version="0.1.2")
 
 # --- CORS ---
@@ -207,3 +211,5 @@ async def conversation(req: ConversationRequest):
             response="Sorry, I can't help with questions about competitors. Let me know how I can assist with your travel plans instead!",
         )
     return ConversationResponse(allowed=True, reply="Your message is allowed. How can I help you further?")
+
+

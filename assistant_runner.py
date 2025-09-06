@@ -30,6 +30,7 @@ openai.beta.threads.messages.create(
 run = openai.beta.threads.runs.create(
     thread_id=thread.id,
     assistant_id=ASSISTANT_ID,
+    max_output_tokens=3000 
 )
 
 # Poll for completion
