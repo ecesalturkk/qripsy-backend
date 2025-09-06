@@ -4,12 +4,13 @@ from pydantic import BaseModel, Field, constr
 from typing import List, Dict, Literal, Optional
 import string
 
-from routes_chat import router as chat_router
-app.include_router(chat_router)
+
 
 
 app = FastAPI(title="Qrispy TravelBuddy API", version="0.1.2")
 
+from routes_chat import router as chat_router
+app.include_router(chat_router) 
 # --- CORS ---
 app.add_middleware(
     CORSMiddleware,
